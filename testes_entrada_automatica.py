@@ -36,8 +36,12 @@ def rodar():
         try:
             assert esperar(lambda:'Alice' in servidor.clientes), 'não conectou sozinho'
             with TestClient(criar_app(ponte)) as web:
-                assert web.get('/api/estado').status_code==401
-                assert web.get('/').status_code==200  # abrir a página já autentica o navegador
+                # Página vinda do cache com cookie de uma execução anterior: renova, sem tela de login.
+                web.cookies.set('rc4_session','token-antigo')
+                velho=web.get('/api/estado')
+                assert velho.status_code==200 and 'rc4_session' in velho.cookies, velho.text
+                pagina=web.get('/')  # abrir a página já autentica o navegador
+                assert pagina.status_code==200 and pagina.headers['cache-control']=='no-store'
                 estado=web.get('/api/estado')
                 assert estado.status_code==200 and estado.json()['usuario']=='Alice'
                 envio=web.post('/api/mensagem',json={'para':'Bob','texto':'Entrei sem senha'})
@@ -48,6 +52,7 @@ def rodar():
                 time.sleep(1)
                 assert 'Alice' not in servidor.clientes, 'reconectou depois do logout'
                 assert web.post('/api/mensagem',json={'para':'Bob','texto':'x'}).status_code==401
+                assert web.get('/api/estado').status_code==401, 'logout não pediu login de novo'
                 assert web.get('/').status_code==200  # reabrir a página volta a entrar
                 assert esperar(lambda:'Alice' in servidor.clientes), 'não voltou ao reabrir a página'
                 assert web.get('/api/estado').status_code==200

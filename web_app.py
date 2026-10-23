@@ -174,13 +174,17 @@ def criar_app(ponte):
         if c is None or not c.ativo: raise HTTPException(503,'cliente desconectado; conectando ao servidor')
         return c
 
+    def entregar_token(resposta):
+        resposta.set_cookie('rc4_session',ponte.novo_token(),httponly=True,samesite='strict',secure=False,path='/')
+
     @app.get('/')
     def home():
-        resposta=FileResponse(BASE/'web'/'static'/'index.html')
+        # no-store: uma cópia em cache abriria sem receber o cookie novo e cairia na tela de login.
+        resposta=FileResponse(BASE/'web'/'static'/'index.html',headers={'Cache-Control':'no-store'})
         if ponte.senha_auto:
             # Entrada automática: a página já abre dentro do chat, sem tela de login.
             ponte.saiu=False
-            resposta.set_cookie('rc4_session',ponte.novo_token(),httponly=True,samesite='strict',secure=False,path='/')
+            entregar_token(resposta)
         return resposta
 
     @app.post('/api/login')
@@ -211,8 +215,12 @@ def criar_app(ponte):
         return {'encerrado':True}
 
     @app.get('/api/estado')
-    def estado(rc4_session:str|None=Cookie(None)):
-        autenticar(rc4_session)
+    def estado(response:Response,rc4_session:str|None=Cookie(None)):
+        if ponte.senha_auto and not ponte.saiu and rc4_session not in ponte.tokens:
+            # Cookie ausente ou de uma execução anterior: renova em vez de pedir login.
+            entregar_token(response)
+        else:
+            autenticar(rc4_session)
         return ponte.atualizar()
 
     @app.get('/api/eventos')
