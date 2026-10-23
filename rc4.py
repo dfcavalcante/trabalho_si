@@ -3,20 +3,26 @@
 
 class RC4:
     def __init__(self, chave, log=None, drop=3072, nome="RC4"):
+        if not chave:
+            raise ValueError("chave RC4 vazia")
         self.log = log
         self.nome = nome
         self.verboso = False
         self.S = list(range(256))
         if log:
-            log.passo("KSA", f"{nome}: chave de {len(chave)} bytes = {chave.hex()}")
-            log.passo("KSA", f"{nome}: S inicial = {self.S[:16]}... (0 a 255)", tela=False)
+            log.passo("KSA", f"{nome}: chave de {len(chave)} bytes (valor secreto omitido)")
+            if getattr(log, "didatico", False):
+                log.passo("KSA", f"{nome}: S inicial = {self.S[:16]}... (0 a 255)", tela=False)
         j = 0
         for i in range(256):
             j = (j + self.S[i] + chave[i % len(chave)]) % 256
             self.S[i], self.S[j] = self.S[j], self.S[i]
         if log:
-            log.passo("KSA", f"{nome}: S após embaralhar (16 primeiros) = {self.S[:16]}")
-            log.passo("KSA", f"{nome}: S completo = {self.S}", tela=False)
+            if getattr(log, "didatico", False):
+                log.passo("KSA", f"{nome}: S após embaralhar (16 primeiros) = {self.S[:16]}")
+                log.passo("KSA", f"{nome}: S completo = {self.S}", tela=False)
+            else:
+                log.passo("KSA", f"{nome}: permutação do estado concluída; valores secretos omitidos")
         self.i = 0
         self.j = 0
         for _ in range(drop):
@@ -36,7 +42,7 @@ class RC4:
         for n, byte in enumerate(dados):
             k = self._proximo_byte()
             saida.append(byte ^ k)
-            if self.verboso and self.log:
+            if self.verboso and self.log and getattr(self.log, "didatico", False):
                 self.log.passo("PRGA", f"{self.nome}: byte {n}: i={self.i} j={self.j} "
                                        f"fluxo=0x{k:02x} entrada=0x{byte:02x} saida=0x{byte ^ k:02x}")
         return bytes(saida)

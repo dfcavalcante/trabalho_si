@@ -1,16 +1,19 @@
 """Registro rastreável: cada passo vira uma linha numerada no terminal e no arquivo de log."""
 import os
+import secrets
 from datetime import datetime
 
 
 class Log:
-    def __init__(self, lado, pasta="logs", limite_tela=160):
+    def __init__(self, lado, pasta="logs", limite_tela=160, didatico=False):
         self.lado = lado.upper()
+        self.didatico = didatico
         self.contador = 0
         self.limite_tela = limite_tela
         os.makedirs(pasta, exist_ok=True)
-        carimbo = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.caminho = os.path.join(pasta, f"sessao_{carimbo}_{lado.lower()}.log")
+        carimbo = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        sufixo = secrets.token_hex(3)
+        self.caminho = os.path.join(pasta, f"sessao_{carimbo}_{sufixo}_{lado.lower()}.log")
         self.arquivo = open(self.caminho, "w", encoding="utf-8")
 
     def passo(self, etapa, detalhe, tela=True):

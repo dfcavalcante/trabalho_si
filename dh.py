@@ -96,11 +96,17 @@ def miller_rabin(n, rodadas=20, log=None):
 def gerar_chaves(p, g, log, tela_detalhe=True):
     """Sorteia a chave privada e calcula a pública. Retorna (privada, publica)."""
     privada = 2 + secrets.randbelow(p - 3)  # 2 <= privada <= p - 2
+    if p == 23 and g == 5:
+        # No grupo didático, evitar chaves públicas triviais por reamostragem.
+        while exp_mod(g, privada, p) not in range(2, p - 1):
+            privada = 2 + secrets.randbelow(p - 3)
     if p.bit_length() <= 64:
         log.passo("PRIV", f"chave privada sorteada = {privada}")
     else:
-        log.passo("PRIV", f"chave privada sorteada: {privada.bit_length()} bits, termina em ...{format(privada, 'x')[-4:]}")
-    publica = exp_mod(g, privada, p, log, "DH-POW", tela=tela_detalhe)
+        log.passo("PRIV", f"chave privada sorteada: {privada.bit_length()} bits; conteúdo protegido")
+    if log and not getattr(log, "didatico", False):
+        log.passo("DH-POW", "exponenciação modular com expoente privado: passos sigilosos omitidos")
+    publica = exp_mod(g, privada, p, log if getattr(log, "didatico", False) else None, "DH-POW", tela=tela_detalhe)
     log.passo("PUB", f"chave pública = {abreviar(publica)}")
     return privada, publica
 
@@ -108,17 +114,34 @@ def gerar_chaves(p, g, log, tela_detalhe=True):
 def validar_publica(valor, p, log):
     """Rejeita chaves públicas triviais (1, p-1 ou fora do intervalo)."""
     ok = 2 <= valor <= p - 2
+    if ok and p == P_RFC3526_G14:
+        q = (p - 1) // 2
+        ok = exp_mod(valor, q, p) == 1
     log.passo("VALIDA", f"2 <= {abreviar(valor)} <= p-2 ? {'OK' if ok else 'REJEITADA'}")
     if not ok:
         raise ValueError("chave pública recebida inválida")
 
 
 def segredo(publica_outro, privada, p, log, tela_detalhe=True):
-    s = exp_mod(publica_outro, privada, p, log, "SEGREDO", tela=tela_detalhe)
-    log.passo("SEGREDO", f"segredo compartilhado s = {abreviar(s)}")
+    if log and not getattr(log, "didatico", False):
+        log.passo("SEGREDO", "exponenciação com chave privada: passos sigilosos omitidos")
+    s = exp_mod(publica_outro, privada, p, log if getattr(log, "didatico", False) else None, "SEGREDO", tela=tela_detalhe)
+    log.passo("SEGREDO", f"segredo compartilhado s = {s if getattr(log, 'didatico', False) else '[OCULTO]'}")
     return s
 
 
 def impressao_digital(valor):
     """Últimos 8 dígitos hex, para conferência em voz alta (anti-intermediário)."""
     return format(valor, "x")[-8:].upper().rjust(8, "0")
+
+
+def validar_parametros(modo, p, g, log=None):
+    """Aceita apenas parâmetros locais conhecidos, evitando grupos impostos pela rede."""
+    if modo not in ("didatico", "seguro"):
+        raise ValueError("modo de criptografia desconhecido")
+    esperado = DIDATICO if modo == "didatico" else SEGURO
+    ok = (p == esperado["p"] and g == esperado["g"])
+    if log:
+        log.passo("VALIDA", f"parâmetros do modo {modo}: {'OK' if ok else 'REJEITADOS'}")
+    if not ok:
+        raise ValueError("parâmetros Diffie-Hellman não correspondem ao grupo autorizado")
