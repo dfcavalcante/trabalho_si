@@ -1,0 +1,29 @@
+[0001] 2026-10-23 23:08:00 | BOB | CONEXAO  | conectado ao servidor 127.0.0.1:41583
+[0002] 2026-10-23 23:08:00 | BOB | PRESENCA | usuários disponíveis: Alice, Bob
+[0003] 2026-10-23 23:08:00 | BOB | VALIDA   | parâmetros do modo seguro: OK
+[0004] 2026-10-23 23:08:00 | BOB | VALIDA   | 2 <= 2a03b0333bc9b3d5...0caaf8cb314fe71a (2046 bits) <= p-2 ? OK
+[0005] 2026-10-23 23:08:00 | BOB | PRIV     | chave privada sorteada: 2048 bits; conteúdo protegido
+[0006] 2026-10-23 23:08:00 | BOB | DH-POW   | exponenciação modular com expoente privado: passos sigilosos omitidos
+[0007] 2026-10-23 23:08:00 | BOB | PUB      | chave pública = a591e61336e75cde...133272306e565f38 (2048 bits)
+[0008] 2026-10-23 23:08:00 | BOB | SEGREDO  | exponenciação com chave privada: passos sigilosos omitidos
+[0009] 2026-10-23 23:08:01 | BOB | SEGREDO  | segredo compartilhado s = [OCULTO]
+[0010] 2026-10-23 23:08:01 | BOB | DERIVA   | HKDF-SHA256: entrada DH com 256 bytes; contexto=74726162616c686f5f73692d73657373616f2d76327c66383864326261653361316334653531386537336230396166303138333438613633323834393166313639653336656138616433643666373366313736653031
+[0011] 2026-10-23 23:08:01 | BOB | DERIVA   | extract: PRK = HMAC-SHA256(sal, segredo DH)
+[0012] 2026-10-23 23:08:01 | BOB | DERIVA   | expand: chaves RC4 independentes por direção (32 bytes cada)
+[0013] 2026-10-23 23:08:01 | BOB | DERIVA   | Alice->Bob e Bob->Alice: chaves distintas; valores secretos omitidos
+[0014] 2026-10-23 23:08:01 | BOB | KSA      | Bob->Alice: chave de 32 bytes (valor secreto omitido)
+[0015] 2026-10-23 23:08:01 | BOB | KSA      | Bob->Alice: permutação do estado concluída; valores secretos omitidos
+[0016] 2026-10-23 23:08:01 | BOB | PRGA     | Bob->Alice: descartados os 3072 primeiros bytes do fluxo (RC4-drop)
+[0017] 2026-10-23 23:08:01 | BOB | KSA      | Alice->Bob: chave de 32 bytes (valor secreto omitido)
+[0018] 2026-10-23 23:08:01 | BOB | KSA      | Alice->Bob: permutação do estado concluída; valores secretos omitidos
+[0019] 2026-10-23 23:08:01 | BOB | PRGA     | Alice->Bob: descartados os 3072 primeiros bytes do fluxo (RC4-drop)
+[0020] 2026-10-23 23:08:01 | BOB | SESSAO   | DH calculado com Alice; impressão digital pública=F88D2BAE3A1C4E51
+[0021] 2026-10-23 23:08:01 | BOB | IDENTIDADE | credencial previamente confiável encontrada para Alice; confirmação automática pendente
+[0022] 2026-10-23 23:08:01 | BOB | ENVIO    | resposta DH para Alice: pública=a591e61336e75cde...133272306e565f38 (2048 bits)
+[0023] 2026-10-23 23:08:01 | BOB | KEYCONF  | prova automática de posse do segredo enviada para Alice
+[0024] 2026-10-23 23:08:01 | BOB | AUTENTICA | prova criptográfica recebida de Alice; código=F88D2BAE3A1C4E51
+[0025] 2026-10-23 23:08:01 | BOB | AUTENTICA | sessão com Alice: identidade pré-compartilhada e segredo confirmados automaticamente
+[0026] 2026-10-23 23:08:01 | BOB | INTEGRIDADE | Alice: HMAC válido; seq=0
+[0027] 2026-10-23 23:08:01 | BOB | DECIFRA  | Alice: 47 bytes decifrados
+[0028] 2026-10-23 23:08:01 | BOB | CIFRA    | Alice: seq=0, 46 bytes, HMAC-SHA256
+[0029] 2026-10-23 23:08:01 | BOB | ACK      | Alice confirmou recebimento da mensagem seq=0

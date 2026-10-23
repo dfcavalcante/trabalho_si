@@ -21,7 +21,7 @@ python -m pip install -r requirements-web.txt
 python preparar_demo.py Alice Bob Carlos
 ```
 
-O `preparar_demo.py` é **somente para ambiente didático**: cria as contas no servidor e as identidades compartilhadas, sem perguntar nada. A senha de cada conta é gerada aleatoriamente e guardada em `identidades/<usuário>.json`, junto das chaves de par. Em computadores diferentes, esses arquivos precisam ser distribuídos de forma confiável e devem permanecer secretos. Não publique `identidades/` ou `dados_servidor/`. Para digitar as senhas em vez de gerá-las, use `--perguntar-senha`; nesse caso a interface web pede login.
+O `preparar_demo.py` é **somente para ambiente didático**: prepara contas e identidades compartilhadas. Em computadores diferentes, os arquivos `identidades/<usuário>.json` precisam ser distribuídos de forma confiável e devem permanecer secretos. Não publique `identidades/` ou `dados_servidor/`.
 
 Em terminais separados:
 
@@ -31,9 +31,7 @@ python web_app.py --usuario Alice --modo didatico --porta 8001
 python web_app.py --usuario Bob --modo didatico --porta 8002
 ```
 
-Acesse `http://127.0.0.1:8001` e `http://127.0.0.1:8002`: cada página **já abre logada**, sem tela de senha. O `web_app.py` lê a senha do arquivo de identidade e faz sozinho o login no servidor (desafio-resposta; a senha não trafega). Se o servidor ainda não estiver no ar, ele tenta de novo a cada 2 s. "Sair da conta" desconecta o usuário; reabrir a página entra de novo.
-
-Contas criadas antes desta versão não têm senha salva e continuam com login manual. Para passar a entrar direto, apague `dados_servidor/contas.json` e a pasta `identidades/` e rode o `preparar_demo.py` de novo.
+Acesse `http://127.0.0.1:8001` e `http://127.0.0.1:8002`. Faça login com as senhas configuradas na preparação.
 
 ## Auditoria e testes
 

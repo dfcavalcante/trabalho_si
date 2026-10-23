@@ -1,0 +1,45 @@
+[0001] 2026-10-23 23:07:33 | BOB | CONEXAO  | conectado ao servidor 127.0.0.1:39799
+[0002] 2026-10-23 23:07:33 | BOB | PRESENCA | usuários disponíveis: Alice, Bob
+[0003] 2026-10-23 23:07:33 | BOB | VALIDA   | parâmetros do modo didatico: OK
+[0004] 2026-10-23 23:07:33 | BOB | VALIDA   | 2 <= 20 <= p-2 ? OK
+[0005] 2026-10-23 23:07:33 | BOB | PRIV     | chave privada sorteada = 17
+[0006] 2026-10-23 23:07:33 | BOB | DH-POW   | calcular 5^17 mod 23 | expoente em binário tem 5 bits: 10001
+[0007] 2026-10-23 23:07:33 | BOB | DH-POW   | iter=   1 bit=1 -> quadrado=1 -> x base=5
+[0008] 2026-10-23 23:07:33 | BOB | DH-POW   | iter=   2 bit=0 -> quadrado=2
+[0009] 2026-10-23 23:07:33 | BOB | DH-POW   | iter=   3 bit=0 -> quadrado=4
+[0010] 2026-10-23 23:07:33 | BOB | DH-POW   | iter=   4 bit=0 -> quadrado=16
+[0011] 2026-10-23 23:07:33 | BOB | DH-POW   | iter=   5 bit=1 -> quadrado=3 -> x base=15
+[0012] 2026-10-23 23:07:33 | BOB | DH-POW   | resultado = 15
+[0013] 2026-10-23 23:07:33 | BOB | PUB      | chave pública = 15
+[0014] 2026-10-23 23:07:33 | BOB | SEGREDO  | calcular 20^17 mod 23 | expoente em binário tem 5 bits: 10001
+[0015] 2026-10-23 23:07:33 | BOB | SEGREDO  | iter=   1 bit=1 -> quadrado=1 -> x base=20
+[0016] 2026-10-23 23:07:33 | BOB | SEGREDO  | iter=   2 bit=0 -> quadrado=9
+[0017] 2026-10-23 23:07:33 | BOB | SEGREDO  | iter=   3 bit=0 -> quadrado=12
+[0018] 2026-10-23 23:07:33 | BOB | SEGREDO  | iter=   4 bit=0 -> quadrado=6
+[0019] 2026-10-23 23:07:33 | BOB | SEGREDO  | iter=   5 bit=1 -> quadrado=13 -> x base=7
+[0020] 2026-10-23 23:07:33 | BOB | SEGREDO  | resultado = 7
+[0021] 2026-10-23 23:07:33 | BOB | SEGREDO  | segredo compartilhado s = 7
+[0022] 2026-10-23 23:07:33 | BOB | DERIVA   | HKDF-SHA256: entrada DH com 1 bytes; contexto=74726162616c686f5f73692d73657373616f2d76327c31616463303234633965363965316461306561653530623332373962316637343836666230626333366631396161653561386336633637303237396433303631
+[0023] 2026-10-23 23:07:33 | BOB | DERIVA   | extract: PRK = HMAC-SHA256(sal, segredo DH)
+[0024] 2026-10-23 23:07:33 | BOB | DERIVA   | expand: chaves RC4 independentes por direção (32 bytes cada)
+[0025] 2026-10-23 23:07:33 | BOB | DERIVA   | Alice->Bob e Bob->Alice: chaves distintas; valores secretos omitidos
+[0026] 2026-10-23 23:07:33 | BOB | KSA      | Bob->Alice: chave de 32 bytes (valor secreto omitido)
+[0027] 2026-10-23 23:07:33 | BOB | KSA      | Bob->Alice: S inicial = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]... (0 a 255)
+[0028] 2026-10-23 23:07:33 | BOB | KSA      | Bob->Alice: S após embaralhar (16 primeiros) = [13, 25, 119, 80, 116, 135, 221, 128, 2, 85, 65, 194, 32, 55, 168, 118]
+[0029] 2026-10-23 23:07:33 | BOB | KSA      | Bob->Alice: S completo = [13, 25, 119, 80, 116, 135, 221, 128, 2, 85, 65, 194, 32, 55, 168, 118, 114, 74, 23, 145, 217, 242, 86, 22, 89, 82, 204, 27, 19, 31, 95, 60, 111, 232, 20, 195, 159, 130, 18, 146, 49, 6, 190, 169, 115, 68, 88, 178, 253, 161, 180, 52, 78, 70, 63, 141, 75, 34, 120, 73, 150, 66, 238, 234, 192, 91, 102, 173, 149, 152, 98, 103, 10, 127, 4, 92, 250, 181, 37, 69, 72, 230, 16, 196, 201, 147, 186, 46, 29, 224, 17, 126, 50, 123, 14, 129, 56, 48, 171, 199, 117, 108, 11, 229, 219, 193, 136, 167, 216, 165, 218, 172, 125, 124, 246, 28, 188, 26, 144, 41, 222, 33, 139, 154, 110, 53, 143, 174, 90, 84, 137, 43, 226, 153, 12, 109, 58, 156, 61, 183, 142, 93, 215, 131, 3, 42, 235, 134, 59, 40, 163, 157, 162, 105, 244, 205, 197, 212, 236, 214, 255, 15, 239, 185, 47, 133, 0, 101, 231, 45, 241, 83, 248, 71, 113, 121, 164, 202, 94, 7, 79, 64, 237, 122, 198, 200, 220, 176, 112, 233, 206, 240, 158, 209, 106, 207, 182, 54, 24, 67, 223, 100, 252, 35, 227, 30, 175, 21, 160, 184, 211, 187, 225, 228, 189, 104, 254, 8, 208, 247, 132, 36, 243, 96, 5, 138, 166, 77, 99, 76, 51, 213, 191, 62, 140, 179, 170, 97, 38, 210, 9, 107, 57, 245, 177, 251, 87, 148, 1, 249, 44, 151, 203, 155, 81, 39]
+[0030] 2026-10-23 23:07:33 | BOB | PRGA     | Bob->Alice: descartados os 3072 primeiros bytes do fluxo (RC4-drop)
+[0031] 2026-10-23 23:07:33 | BOB | KSA      | Alice->Bob: chave de 32 bytes (valor secreto omitido)
+[0032] 2026-10-23 23:07:33 | BOB | KSA      | Alice->Bob: S inicial = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]... (0 a 255)
+[0033] 2026-10-23 23:07:33 | BOB | KSA      | Alice->Bob: S após embaralhar (16 primeiros) = [5, 56, 102, 18, 91, 52, 17, 167, 99, 194, 34, 42, 104, 66, 251, 234]
+[0034] 2026-10-23 23:07:33 | BOB | KSA      | Alice->Bob: S completo = [5, 56, 102, 18, 91, 52, 17, 167, 99, 194, 34, 42, 104, 66, 251, 234, 8, 26, 82, 151, 158, 111, 156, 70, 80, 28, 53, 175, 164, 247, 244, 25, 54, 90, 168, 87, 65, 162, 212, 110, 202, 39, 240, 24, 157, 186, 33, 57, 75, 124, 60, 31, 203, 190, 107, 147, 73, 22, 20, 254, 198, 207, 174, 29, 139, 134, 72, 249, 130, 223, 67, 97, 246, 63, 74, 19, 49, 145, 181, 252, 37, 40, 253, 68, 193, 14, 35, 116, 58, 224, 23, 84, 106, 166, 3, 98, 135, 16, 71, 160, 185, 129, 237, 211, 178, 7, 138, 231, 215, 229, 92, 219, 100, 191, 146, 79, 43, 226, 13, 86, 183, 95, 214, 2, 51, 118, 93, 163, 137, 177, 30, 154, 94, 15, 218, 188, 173, 236, 242, 4, 233, 171, 206, 209, 115, 12, 27, 123, 6, 47, 126, 10, 189, 250, 199, 165, 161, 155, 241, 221, 89, 149, 41, 204, 117, 200, 62, 239, 222, 179, 170, 88, 101, 235, 36, 205, 45, 201, 108, 21, 144, 172, 0, 196, 238, 182, 76, 105, 112, 230, 77, 227, 50, 127, 48, 232, 228, 225, 103, 131, 245, 220, 78, 120, 248, 83, 59, 96, 152, 210, 243, 187, 128, 121, 38, 148, 184, 136, 159, 125, 213, 217, 44, 85, 176, 113, 114, 195, 140, 150, 64, 46, 1, 132, 169, 255, 192, 143, 81, 11, 122, 109, 142, 61, 153, 216, 180, 32, 55, 141, 208, 69, 133, 197, 9, 119]
+[0035] 2026-10-23 23:07:33 | BOB | PRGA     | Alice->Bob: descartados os 3072 primeiros bytes do fluxo (RC4-drop)
+[0036] 2026-10-23 23:07:33 | BOB | SESSAO   | DH calculado com Alice; impressão digital pública=1ADC024C9E69E1DA
+[0037] 2026-10-23 23:07:33 | BOB | IDENTIDADE | credencial previamente confiável encontrada para Alice; confirmação automática pendente
+[0038] 2026-10-23 23:07:33 | BOB | ENVIO    | resposta DH para Alice: pública=15
+[0039] 2026-10-23 23:07:33 | BOB | KEYCONF  | prova automática de posse do segredo enviada para Alice
+[0040] 2026-10-23 23:07:33 | BOB | AUTENTICA | prova criptográfica recebida de Alice; código=1ADC024C9E69E1DA
+[0041] 2026-10-23 23:07:33 | BOB | AUTENTICA | sessão com Alice: identidade pré-compartilhada e segredo confirmados automaticamente
+[0042] 2026-10-23 23:07:33 | BOB | INTEGRIDADE | Alice: HMAC válido; seq=0
+[0043] 2026-10-23 23:07:33 | BOB | DECIFRA  | Alice: 47 bytes decifrados
+[0044] 2026-10-23 23:07:33 | BOB | CIFRA    | Alice: seq=0, 46 bytes, HMAC-SHA256
+[0045] 2026-10-23 23:07:33 | BOB | ACK      | Alice confirmou recebimento da mensagem seq=0

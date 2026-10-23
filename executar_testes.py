@@ -6,7 +6,7 @@ from pathlib import Path
 
 TESTES = [
     'testes_primitivas_manuais.py', 'testes.py', 'testes_etapa1.py', 'testes_etapa4.py',
-    'testes_login.py', 'testes_entrada_automatica.py', 'testes_cliente_servidor.py',
+    'testes_login.py', 'testes_cliente_servidor.py',
     'testes_etapa3.py', 'testes_grupos.py',
     'testes_presenca.py', 'testes_web.py',
     'testes_sessao.py', 'testes_auditoria_dh.py',

@@ -1,0 +1,39 @@
+{
+  "modo": "seguro",
+  "sessao": "199d8d0becf8c4fee1d9912f",
+  "alice_autenticada": true,
+  "bob_autenticado": true,
+  "bob_recebeu": "EVIDENCIA: Alice enviou esta mensagem para Bob.",
+  "alice_recebeu": "EVIDENCIA: Bob recebeu e respondeu para Alice.",
+  "alice_ack": [
+    [
+      "Bob",
+      0
+    ]
+  ],
+  "bob_ack": [
+    [
+      "Alice",
+      0
+    ]
+  ],
+  "tipos_pacote": [
+    "dh_inicio",
+    "dh_resposta",
+    "confirmacao",
+    "confirmacao",
+    "cifra",
+    "ack",
+    "cifra",
+    "ack"
+  ],
+  "pacotes_da_sessao": 8,
+  "mensagens_cifradas": 2,
+  "validacoes": [
+    "DH automático",
+    "HMAC e ACK",
+    "cifragem RC4 distinta do texto claro",
+    "sessão idêntica nas duas pontas"
+  ],
+  "observacao": "Senhas de demonstração não são copiadas. Logs didáticos podem conter chaves de demonstração."
+}

@@ -339,7 +339,8 @@ def main():
     modo='didatico' if input('Modo [1] didático [2] seguro: ').strip()=='1' else 'seguro'
     host=input('Servidor [127.0.0.1]: ').strip() or '127.0.0.1'
     porta=int(input('Porta [5000]: ').strip() or 5000)
-    senha=contas.ler_senha('Senha de login: ')
+    import getpass
+    senha=getpass.getpass('Senha de login: ')
     cliente=Cliente(nome,modo)
     try:
         cliente.conectar(host,porta,senha)

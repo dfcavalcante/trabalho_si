@@ -1,0 +1,82 @@
+[
+  {
+    "origem": "Alice",
+    "destino": "Bob",
+    "tipo": "dh_inicio",
+    "sessao": "d8d3d6fc6a7ffb69cfa16937",
+    "seq": null,
+    "chave_publica_hex": "14",
+    "cifrado_hex": null,
+    "hmac_hex": null
+  },
+  {
+    "origem": "Bob",
+    "destino": "Alice",
+    "tipo": "dh_resposta",
+    "sessao": "d8d3d6fc6a7ffb69cfa16937",
+    "seq": null,
+    "chave_publica_hex": "f",
+    "cifrado_hex": null,
+    "hmac_hex": null
+  },
+  {
+    "origem": "Alice",
+    "destino": "Bob",
+    "tipo": "confirmacao",
+    "sessao": "d8d3d6fc6a7ffb69cfa16937",
+    "seq": null,
+    "chave_publica_hex": null,
+    "cifrado_hex": null,
+    "hmac_hex": "85b6a3e9e1f087e31ab23789754afff80c829cff728df5cdc669912a310c42d3"
+  },
+  {
+    "origem": "Bob",
+    "destino": "Alice",
+    "tipo": "confirmacao",
+    "sessao": "d8d3d6fc6a7ffb69cfa16937",
+    "seq": null,
+    "chave_publica_hex": null,
+    "cifrado_hex": null,
+    "hmac_hex": "d43f191ebcc93a68040aa68840adac160e233364416482f5e0ffc62279d795f1"
+  },
+  {
+    "origem": "Alice",
+    "destino": "Bob",
+    "tipo": "cifra",
+    "sessao": "d8d3d6fc6a7ffb69cfa16937",
+    "seq": 0,
+    "chave_publica_hex": null,
+    "cifrado_hex": "bf6cef237851c1ba35c047c110652bc866f908688b0abd4607da5460e711f209dbc437a774e6963659767ee68ae84d",
+    "hmac_hex": "701781293016780cf2e588dd188cc740ae886ac7a97431876f997d1b364b1e17"
+  },
+  {
+    "origem": "Bob",
+    "destino": "Alice",
+    "tipo": "ack",
+    "sessao": "d8d3d6fc6a7ffb69cfa16937",
+    "seq": 0,
+    "chave_publica_hex": null,
+    "cifrado_hex": null,
+    "hmac_hex": "19b86084f12de3f3b1cfe316cfa263b67f73f3b99b4ac92c59fcbe18a03062c8"
+  },
+  {
+    "origem": "Bob",
+    "destino": "Alice",
+    "tipo": "cifra",
+    "sessao": "d8d3d6fc6a7ffb69cfa16937",
+    "seq": 0,
+    "chave_publica_hex": null,
+    "cifrado_hex": "3c2415903e1e14caeda9e31a7d0778b7ef4dbc1c25d2929fd6f0622ec8a55651f4870620479d2dc6869ca51a4b6c",
+    "hmac_hex": "104acf57e40992c85b75cff1ca750bcbd15a2ac290c86e4db82be97b68c52ec9"
+  },
+  {
+    "origem": "Alice",
+    "destino": "Bob",
+    "tipo": "ack",
+    "sessao": "d8d3d6fc6a7ffb69cfa16937",
+    "seq": 0,
+    "chave_publica_hex": null,
+    "cifrado_hex": null,
+    "hmac_hex": "8ac2887033b1c85565824b66d598e9093b7c5adaa5cdc4b1c1bdcf5ec1f26ab4"
+  }
+]

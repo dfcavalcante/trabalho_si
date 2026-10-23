@@ -1,0 +1,82 @@
+[
+  {
+    "origem": "Alice",
+    "destino": "Bob",
+    "tipo": "dh_inicio",
+    "sessao": "199d8d0becf8c4fee1d9912f",
+    "seq": null,
+    "chave_publica_hex": "2a03b0333bc9b3d5f169ad7a1c653ff93292bc49e958cfc82a83559a5b81d6659c815682caaf61ca25c22da5ef87ed09ffd427a7531157bc2ec6afb992f4dcbfbae9f5b9c5c69fb5d790f7173bad593b0fc36d966e7c0c87a8879d720f535b08c1bdde7423d5ec0661c39b11264069186ec6f0cce966133cc0c8718eab6b22886820c1baa43cdc1f9d1003a497dbb8becc796c7fd258c6d6bb027109f4097e9253c1e7c76ffa1c7ae6172088824e51b660a0e0bac752a05ac7673b87c1547b04f98298ecf45038c2a6cb49786230a1ceb6fca5afb68176882912c51cdcd43206bc9f1755ac8ea8a6159dfe0d7ac633b8978cfd81652274410caaf8cb314fe71a",
+    "cifrado_hex": null,
+    "hmac_hex": null
+  },
+  {
+    "origem": "Bob",
+    "destino": "Alice",
+    "tipo": "dh_resposta",
+    "sessao": "199d8d0becf8c4fee1d9912f",
+    "seq": null,
+    "chave_publica_hex": "a591e61336e75cde9d4ee5fa5a8d9b70d513fc2012df769c7b8054e1ae684f266cec9ebe24c694fe9b24697535e55857519c6f3e1e79ae2911ccb9b8c8a91b0ae708276cd3bd8fcfdb606a8143a1047f89054df91df51789114d8c84666dceb03beb52aad0be80c9cae6d1909d1d50acd9119f10319ff19c3bb9adb708740cbade3b08eb1d9df029c64a3469fa6a5deb5a07f05b4d9cc1e08de48b5d5e412cf6d822a9dfe4c0f2305c5cec7b66a0bbdb287132a52ee5033cd84261065ecc202081406c84f554087caf1389deb6a87938c5f718b801272f58c6c8d8466418ed4b443c48e68e82bb285e6f7075371d3373c22742b30f31ceba133272306e565f38",
+    "cifrado_hex": null,
+    "hmac_hex": null
+  },
+  {
+    "origem": "Alice",
+    "destino": "Bob",
+    "tipo": "confirmacao",
+    "sessao": "199d8d0becf8c4fee1d9912f",
+    "seq": null,
+    "chave_publica_hex": null,
+    "cifrado_hex": null,
+    "hmac_hex": "81becec2178cd4c79957c45137c7d41eb74db73c33175bb2bad8b71f00441bf9"
+  },
+  {
+    "origem": "Bob",
+    "destino": "Alice",
+    "tipo": "confirmacao",
+    "sessao": "199d8d0becf8c4fee1d9912f",
+    "seq": null,
+    "chave_publica_hex": null,
+    "cifrado_hex": null,
+    "hmac_hex": "c05f8265d145a46f153df01cfcdf5d6b00ea9ee5db9e737f3a0a43259998a592"
+  },
+  {
+    "origem": "Alice",
+    "destino": "Bob",
+    "tipo": "cifra",
+    "sessao": "199d8d0becf8c4fee1d9912f",
+    "seq": 0,
+    "chave_publica_hex": null,
+    "cifrado_hex": "5cf010f97cfdb8dc22fd5fd15f806d6c75cd6610944c1e84be4db7ec56e869768196accc18e49862352c53d90f4eb6",
+    "hmac_hex": "e13dd3aed49542d80768d00320818d78727def6e2f7f5b9ee4b77cf32fc35c98"
+  },
+  {
+    "origem": "Bob",
+    "destino": "Alice",
+    "tipo": "ack",
+    "sessao": "199d8d0becf8c4fee1d9912f",
+    "seq": 0,
+    "chave_publica_hex": null,
+    "cifrado_hex": null,
+    "hmac_hex": "8e76450b8488f367b540f339a7b24dbc43d16366ee45d60316215ddcb0eaeed7"
+  },
+  {
+    "origem": "Bob",
+    "destino": "Alice",
+    "tipo": "cifra",
+    "sessao": "199d8d0becf8c4fee1d9912f",
+    "seq": 0,
+    "chave_publica_hex": null,
+    "cifrado_hex": "cdd974a2066a76b65936a30d1f0f04ec522d77bc271bb1c3ea476745397752e0129e0aa359b24308302097b79f2b",
+    "hmac_hex": "30831604f4e5786446929c6e12592cd85ccca173c86f5d78190fa648d621e6cd"
+  },
+  {
+    "origem": "Alice",
+    "destino": "Bob",
+    "tipo": "ack",
+    "sessao": "199d8d0becf8c4fee1d9912f",
+    "seq": 0,
+    "chave_publica_hex": null,
+    "cifrado_hex": null,
+    "hmac_hex": "81fee0f9471a7d15ee2aa4b87da5c8d12ba63c04e2eadc01f48ca47501ac47f1"
+  }
+]
