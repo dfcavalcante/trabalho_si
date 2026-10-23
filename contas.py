@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import re
 import secrets
+import sys
 
 # Python puro: custo elevado; manter configurável e documentar limite acadêmico.
 ITERACOES=int(os.environ.get('RC4_CHAT_PBKDF2_ITERACOES','12000'))
@@ -42,12 +43,31 @@ def verificar(registro,nome,desafio,assinatura):
     esperado=hmac_sha256(bytes.fromhex(registro['verificador']),b'RC4-CHAT-LOGIN-v1|'+nome.encode()+b'|'+bytes.fromhex(desafio)).hex()
     return isinstance(assinatura,str) and compare_digest(esperado,assinatura)
 
+def ler_senha(rotulo, nova=False):
+    """Lê a senha sem eco num terminal de verdade; senão (Git Bash, console de IDE), com eco.
+
+    nova=True pede confirmação e repete até ter pelo menos 10 caracteres.
+    """
+    if sys.stdin.isatty():
+        print('(a senha não aparece enquanto você digita: digite e tecle Enter)', flush=True)
+        ler=getpass.getpass
+    else:
+        print('[AVISO] este terminal não permite ocultar a senha; ela vai aparecer na tela.', flush=True)
+        ler=input
+    while True:
+        senha=ler(rotulo)
+        if not nova: return senha
+        if len(senha)<10:
+            print('A senha deve ter pelo menos 10 caracteres. Tente de novo.', flush=True)
+        elif ler('Repetir senha: ')!=senha:
+            print('As senhas não conferem. Tente de novo.', flush=True)
+        else:
+            return senha
+
 def main():
     parser=argparse.ArgumentParser(description='Criar contas autorizadas no servidor RC4 Chat')
     parser.add_argument('nome'); args=parser.parse_args()
-    senha=getpass.getpass('Senha para '+args.nome+' (min 10 caracteres): ')
-    confirma=getpass.getpass('Repetir senha: ')
-    if senha!=confirma: raise SystemExit('Senhas diferentes')
+    senha=ler_senha('Senha para '+args.nome+' (min 10 caracteres): ',nova=True)
     cadastrar(args.nome,senha)
     print('Conta cadastrada no servidor:',args.nome)
 if __name__=='__main__': main()

@@ -1,8 +1,7 @@
 """Configuração acadêmica inicial, sem substituir credenciais já cadastradas."""
 import argparse
 from pathlib import Path
-from getpass import getpass
-from contas import carregar, cadastrar
+from contas import carregar, cadastrar, ler_senha
 from identidades import provisionar_par, carregar as carregar_ids
 
 def main():
@@ -15,7 +14,7 @@ def main():
     contas = carregar()
     for u in usuarios:
         if u not in contas:
-            senha=getpass(f'Senha de {u} (mínimo 10 caracteres): ')
+            senha=ler_senha(f'Senha de {u} (mínimo 10 caracteres): ',nova=True)
             cadastrar(u,senha)
             print('[CONTA CRIADA]',u)
         else:
