@@ -44,5 +44,4 @@ def abreviar(n, digitos=16):
 
 
 def completo(n):
-    """Valor sem cortes, para auditoria: decimal se pequeno, hexadecimal se grande."""
-    return str(n) if n.bit_length() <= 64 else "0x" + format(n, "x")
+    return str(n) if n.bit_length() <= 64 else "0x"+format(n,"x")

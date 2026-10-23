@@ -4,6 +4,7 @@ from servidor import Servidor
 from cliente import Cliente
 import integridade
 from identidades import provisionar_par
+from contas import cadastrar
 from pathlib import Path
 
 def esperar(cond,limite=8):
@@ -15,15 +16,18 @@ def esperar(cond,limite=8):
 
 def executar(modo):
     temp=socket.socket();temp.bind(('127.0.0.1',0));porta=temp.getsockname()[1];temp.close()
-    servidor=Servidor('127.0.0.1',porta)
-    thread=threading.Thread(target=servidor.iniciar,daemon=True);thread.start()
-    assert esperar(lambda: servidor.sock is not None)
     with tempfile.TemporaryDirectory() as d:
+        db=Path(d)/'contas.json'
+        cadastrar('Alice','aliceSenhaForte123',db)
+        cadastrar('Bob','bobSenhaForte123',db)
+        servidor=Servidor('127.0.0.1',porta,caminho_contas=db)
+        thread=threading.Thread(target=servidor.iniciar,daemon=True);thread.start()
+        assert esperar(lambda: servidor.sock is not None)
         ids=Path(d)/'ids'
         provisionar_par('Alice','Bob',ids)
         a=Cliente('Alice',modo,d,ids/'Alice.json');b=Cliente('Bob',modo,d,ids/'Bob.json')
         try:
-            a.conectar('127.0.0.1',porta);b.conectar('127.0.0.1',porta)
+            a.conectar('127.0.0.1',porta,senha='aliceSenhaForte123');b.conectar('127.0.0.1',porta,senha='bobSenhaForte123')
             a.mensagem('Bob','Mensagem automática')
             assert esperar(lambda: ('Alice','Mensagem automática') in b.recebidas)
             assert esperar(lambda: a._autenticada(a.sessoes['Bob']) and b._autenticada(b.sessoes['Alice']))

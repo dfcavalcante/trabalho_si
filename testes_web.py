@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from servidor import Servidor
 from cliente import Cliente
 from identidades import provisionar_par
+from contas import cadastrar
 from web_app import PonteWeb, criar_app
 
 
@@ -22,26 +23,29 @@ def aguardar(fn, timeout=12):
 def testar():
     with socket.socket() as s:
         s.bind(('127.0.0.1',0)); porta=s.getsockname()[1]
-    servidor=Servidor(porta=porta)
-    threading.Thread(target=servidor.iniciar,daemon=True).start()
-    assert aguardar(lambda: servidor.sock is not None)
     with tempfile.TemporaryDirectory() as tmp:
         pasta=Path(tmp)
+        db=pasta/'contas.json'
+        cadastrar('Alice','aliceSenhaForte123',db)
+        cadastrar('Bob','bobSenhaForte123',db)
+        servidor=Servidor(porta=porta,caminho_contas=db)
+        threading.Thread(target=servidor.iniciar,daemon=True).start()
+        assert aguardar(lambda: servidor.sock is not None)
         provisionar_par('Alice','Bob',pasta/'identidades')
         ponte=PonteWeb('Alice','didatico','127.0.0.1',porta,pasta/'identidades'/'Alice.json')
-        ponte.cliente.log.fechar()  # substituir destino default por diretório temporário
-        from log import Log
-        ponte.cliente.log=Log('Alice',pasta=str(pasta/'logs'),didatico=True)
         bob=Cliente('Bob','didatico',str(pasta/'logs'),pasta/'identidades'/'Bob.json')
         try:
-            bob.conectar(porta=porta)
+            bob.conectar(porta=porta,senha='bobSenhaForte123')
             with TestClient(criar_app(ponte)) as web:
                 assert web.get('/').status_code==200
-                assert web.post('/api/mensagem',json={'para':'Bob','texto':'sem header'}).status_code==403
+                assert web.post('/api/mensagem',json={'para':'Bob','texto':'sem login'}).status_code==401
+                assert web.get('/api/estado').status_code==401
+                login=web.post('/api/login',json={'usuario':'Alice','senha':'aliceSenhaForte123'})
+                assert login.status_code==200, login.text
                 assert web.get('/api/estado').json()['usuario']=='Alice'
-                assert web.post('/api/usuarios',headers={'X-Chat-Local':'1'}).status_code==200
+                assert web.post('/api/usuarios',).status_code==200
                 assert aguardar(lambda: 'Bob' in ponte.cliente.usuarios_online)
-                envio=web.post('/api/mensagem',json={'para':'Bob','texto':'Olá via interface!'},headers={'X-Chat-Local':'1'})
+                envio=web.post('/api/mensagem',json={'para':'Bob','texto':'Olá via interface!'},)
                 assert envio.status_code==200,envio.text
                 assert aguardar(lambda: ('Alice','Olá via interface!') in bob.recebidas)
                 assert aguardar(lambda: len(ponte.cliente.confirmacoes)>0)

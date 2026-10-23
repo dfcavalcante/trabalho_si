@@ -4,15 +4,15 @@ Não substitui TLS/PAKE em produção; protege cenário acadêmico local.
 """
 import argparse
 import getpass
-import hashlib
-import hmac
+from primitivas_manuais import pbkdf2_sha256, hmac_sha256, compare_digest
 import json
 import os
 from pathlib import Path
 import re
 import secrets
 
-ITERACOES=240_000
+# Python puro: custo elevado; manter configurável e documentar limite acadêmico.
+ITERACOES=int(os.environ.get('RC4_CHAT_PBKDF2_ITERACOES','12000'))
 PADRAO=Path(__file__).resolve().parent/'dados_servidor'/'contas.json'
 
 def carregar(caminho=PADRAO):
@@ -26,7 +26,7 @@ def cadastrar(nome,senha,caminho=PADRAO):
     base=carregar(caminho)
     if nome in base: raise ValueError('usuário já cadastrado')
     sal=secrets.token_bytes(16)
-    verificador=hashlib.pbkdf2_hmac('sha256',senha.encode(),sal,ITERACOES)
+    verificador=pbkdf2_sha256(senha.encode(),sal,ITERACOES)
     base[nome]={'sal':sal.hex(),'iteracoes':ITERACOES,'verificador':verificador.hex()}
     caminho.parent.mkdir(parents=True,exist_ok=True)
     tmp=caminho.with_suffix('.tmp')
@@ -35,12 +35,12 @@ def cadastrar(nome,senha,caminho=PADRAO):
     if os.name!='nt': caminho.chmod(0o600)
 
 def prova(senha,nome,sal,iteracoes,desafio):
-    v=hashlib.pbkdf2_hmac('sha256',senha.encode(),bytes.fromhex(sal),iteracoes)
-    return hmac.new(v,b'RC4-CHAT-LOGIN-v1|'+nome.encode()+b'|'+bytes.fromhex(desafio),hashlib.sha256).hexdigest()
+    v=pbkdf2_sha256(senha.encode(),bytes.fromhex(sal),iteracoes)
+    return hmac_sha256(v,b'RC4-CHAT-LOGIN-v1|'+nome.encode()+b'|'+bytes.fromhex(desafio)).hex()
 
 def verificar(registro,nome,desafio,assinatura):
-    esperado=hmac.new(bytes.fromhex(registro['verificador']),b'RC4-CHAT-LOGIN-v1|'+nome.encode()+b'|'+bytes.fromhex(desafio),hashlib.sha256).hexdigest()
-    return isinstance(assinatura,str) and hmac.compare_digest(esperado,assinatura)
+    esperado=hmac_sha256(bytes.fromhex(registro['verificador']),b'RC4-CHAT-LOGIN-v1|'+nome.encode()+b'|'+bytes.fromhex(desafio)).hex()
+    return isinstance(assinatura,str) and compare_digest(esperado,assinatura)
 
 def main():
     parser=argparse.ArgumentParser(description='Criar contas autorizadas no servidor RC4 Chat')

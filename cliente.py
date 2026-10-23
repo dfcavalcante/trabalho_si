@@ -207,12 +207,11 @@ class Cliente:
 
     def _estabelecer(self, outro, papel, identificador, segredo, p, pub_local, pub_remota):
         nomes=(self.nome,outro) if papel=='iniciador' else (outro,self.nome)
-        pub_inic,pub_resp=(pub_local,pub_remota) if papel=='iniciador' else (pub_remota,pub_local)
-        transcricao=integridade.transcricao(identificador,self.modo,nomes[0],nomes[1],pub_inic,pub_resp)
-        # Chaves vinculadas à transcrição autenticada: sessão, papéis, modo e públicas DH.
-        contexto=kdf.contexto_sessao(transcricao)
+        contexto=kdf.contexto_sessao(integridade.transcricao(identificador,self.modo,nomes[0],nomes[1],*( (pub_local,pub_remota) if papel=='iniciador' else (pub_remota,pub_local) )))
         ch_inic,ch_resp=kdf.derivar(segredo,p,self.log,contexto=contexto)
         mac_inic,mac_resp=kdf.derivar_autenticacao(segredo,p,contexto)
+        pub_inic,pub_resp=(pub_local,pub_remota) if papel=='iniciador' else (pub_remota,pub_local)
+        transcricao=integridade.transcricao(identificador,self.modo,nomes[0],nomes[1],pub_inic,pub_resp)
         envio,receb=(ch_inic,ch_resp) if papel=='iniciador' else (ch_resp,ch_inic)
         mac_env,mac_rec=(mac_inic,mac_resp) if papel=='iniciador' else (mac_resp,mac_inic)
         with self.trava_sessoes:

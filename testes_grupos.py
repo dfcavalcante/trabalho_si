@@ -7,23 +7,27 @@ from pathlib import Path
 from servidor import Servidor
 from cliente import Cliente
 from identidades import provisionar_par
+from contas import cadastrar
 from testes_presenca import esperar
 
 
 def testar():
     with socket.socket() as tmp:
         tmp.bind(('127.0.0.1',0)); porta=tmp.getsockname()[1]
-    s=Servidor(porta=porta)
-    threading.Thread(target=s.iniciar,daemon=True).start()
-    assert esperar(lambda:s.sock is not None)
     with tempfile.TemporaryDirectory() as tmp:
         base=Path(tmp); ids=base/'ids'
+        db=base/'contas.json'
+        senhas={n:n.lower()+'SenhaForte123' for n in ('Alice','Bob','Carlos')}
+        for n in senhas: cadastrar(n,senhas[n],db)
+        s=Servidor(porta=porta,caminho_contas=db)
+        threading.Thread(target=s.iniciar,daemon=True).start()
+        assert esperar(lambda:s.sock is not None)
         for a,b in [('Alice','Bob'),('Alice','Carlos'),('Bob','Carlos')]:
             provisionar_par(a,b,ids)
         nomes=['Alice','Bob','Carlos']
         cs={n:Cliente(n,'didatico',str(base/'logs'),ids/(n+'.json')) for n in nomes}
         try:
-            for c in cs.values(): c.conectar(porta=porta)
+            for n,c in cs.items(): c.conectar(porta=porta,senha=senhas[n])
             assert esperar(lambda:all(len(c.usuarios_online)==3 for c in cs.values()))
             cs['Alice'].criar_grupo('Equipe')
             assert esperar(lambda:'Equipe' in cs['Alice'].grupos)

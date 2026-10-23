@@ -3,20 +3,12 @@
 Usa somente a biblioteca padrão. HMAC/SHA256 são operações auxiliares à
 negociação de chaves; RC4 e a aritmética DH permanecem implementados à mão.
 """
-import hashlib
-import hmac
-
+from primitivas_manuais import sha256, hmac_sha256
 from integridade import serializar
 
-
 def contexto_sessao(transcricao):
-    """Contexto HKDF vinculado à negociação específica.
+    return b"trabalho_si-sessao-v2|" + sha256(serializar(transcricao)).hex().encode()
 
-    A transcrição contém protocolo, identificador da sessão, modo, quem é
-    iniciador e quem é respondente, e as duas chaves públicas DH. Qualquer
-    diferença em um desses campos produz chaves RC4 e HMAC diferentes.
-    """
-    return b"trabalho_si-sessao-v2|" + hashlib.sha256(serializar(transcricao)).hexdigest().encode()
 
 
 def _expandir(prk, info, tamanho):
@@ -24,7 +16,7 @@ def _expandir(prk, info, tamanho):
     bloco = b""
     contador = 1
     while len(resultado) < tamanho:
-        bloco = hmac.new(prk, bloco + info + bytes([contador]), hashlib.sha256).digest()
+        bloco = hmac_sha256(prk, bloco + info + bytes([contador]))
         resultado += bloco
         contador += 1
     return resultado[:tamanho]
@@ -33,16 +25,15 @@ def _expandir(prk, info, tamanho):
 def derivar(s, p, log, contexto=b"trabalho_si-v1"):
     """Devolve (chave Alice->Bob, chave Bob->Alice), 32 bytes por sentido.
 
-    No cliente-servidor, contexto = contexto_sessao(transcrição) e os rótulos
-    de direção significam iniciador->respondente e respondente->iniciador;
-    os nomes dos participantes e seus papéis entram pela transcrição.
+    Em uma fase futura, contexto deve incluir a transcrição autenticada e
+    identificador da sessão, para vincular a derivação à negociação.
     """
     if not 1 <= s < p:
         raise ValueError("segredo DH fora do intervalo permitido")
     tamanho = (p.bit_length() + 7) // 8
     segredo_bytes = s.to_bytes(tamanho, "big")
-    sal = hashlib.sha256(b"trabalho_si|hkdf|sal|v1|" + contexto).digest()
-    prk = hmac.new(sal, segredo_bytes, hashlib.sha256).digest()
+    sal = sha256(b"trabalho_si|hkdf|sal|v1|" + contexto)
+    prk = hmac_sha256(sal, segredo_bytes)
     chave_ab = _expandir(prk, b"RC4|Alice->Bob|" + contexto, 32)
     chave_ba = _expandir(prk, b"RC4|Bob->Alice|" + contexto, 32)
     if log:
@@ -58,7 +49,7 @@ def derivar_autenticacao(s, p, contexto):
     if not 1 <= s < p:
         raise ValueError('segredo DH fora do intervalo')
     seg = s.to_bytes((p.bit_length()+7)//8, 'big')
-    sal = hashlib.sha256(b'trabalho_si|hkdf|sal|v1|' + contexto).digest()
-    prk = hmac.new(sal, seg, hashlib.sha256).digest()
+    sal = sha256(b'trabalho_si|hkdf|sal|v1|' + contexto)
+    prk = hmac_sha256(sal, seg)
     return (_expandir(prk, b'HMAC|iniciador->respondente|' + contexto, 32),
             _expandir(prk, b'HMAC|respondente->iniciador|' + contexto, 32))

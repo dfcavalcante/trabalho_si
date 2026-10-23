@@ -3,13 +3,21 @@ import socket
 import threading
 import time
 import secrets
+import json
+import argparse
+from pathlib import Path
 import contas
 from protocolo import enviar, receber
 
 
 class Servidor:
-    def __init__(self, host='127.0.0.1', porta=5000, caminho_contas=None):
+    def __init__(self, host='127.0.0.1', porta=5000, caminho_contas=None, espiao=False, pasta_capturas='logs'):
         self.host, self.porta = host, porta
+        self.espiao = espiao
+        self.pasta_capturas = Path(pasta_capturas)
+        if espiao:
+            self.pasta_capturas.mkdir(parents=True, exist_ok=True)
+        self.trava_captura = threading.Lock()
         self.caminho_contas = caminho_contas or contas.PADRAO
         self.clientes = {}  # nome -> (socket, lock de escrita)
         self.lock = threading.RLock()
@@ -35,6 +43,22 @@ class Servidor:
             pass
         finally:
             self.sock.close()
+
+    def auditar_relay(self, origem, destino, conteudo):
+        """Espia somente o envelope que efetivamente chegou ao relay.
+        Não inclui senhas, provas de login ou chaves privadas.
+        """
+        if not self.espiao:
+            return
+        tipo = conteudo.get('tipo', '?')
+        resumo = {'de': origem, 'para': destino, 'tipo': tipo,
+                  'pacote_json_hex': json.dumps(conteudo, ensure_ascii=False,
+                          sort_keys=True, separators=(',', ':')).encode('utf-8').hex()}
+        with self.trava_captura:
+            with (self.pasta_capturas/'trafego_relay.jsonl').open('a', encoding='utf-8') as arq:
+                arq.write(json.dumps(resumo, ensure_ascii=False) + '\n')
+            print(f'[ESPIAO] {origem} -> {destino} ({tipo}) JSON encaminhado (hex): '
+                  f'{resumo["pacote_json_hex"]}', flush=True)
 
     def enviar_para(self, nome, pacote):
         with self.lock:
@@ -197,6 +221,7 @@ class Servidor:
                     if not self.enviar_para(destino, envelope):
                         enviar(conexao, {'tipo':'erro','motivo':f'destinatário {destino} indisponível'}, trava)
                     else:
+                        self.auditar_relay(nome, destino, conteudo)
                         print(f'[RELAY] {nome} -> {destino}: {conteudo["tipo"]} (somente dados públicos/cifrados)', flush=True)
                 else:
                     enviar(conexao, {'tipo':'erro','motivo':'comando desconhecido'}, trava)
@@ -215,11 +240,16 @@ class Servidor:
 
 
 def main():
-    host = input('Interface [127.0.0.1]: ').strip() or '127.0.0.1'
-    porta = int(input('Porta [5000]: ').strip() or 5000)
+    parser = argparse.ArgumentParser(description='Servidor relay RC4 Chat')
+    parser.add_argument('--espiao', action='store_true', help='Imprime e grava payloads realmente encaminhados')
+    parser.add_argument('--host', default=None)
+    parser.add_argument('--porta', type=int, default=None)
+    args = parser.parse_args()
+    host = args.host or input('Interface [127.0.0.1]: ').strip() or '127.0.0.1'
+    porta = args.porta or int(input('Porta [5000]: ').strip() or 5000)
     if not contas.carregar():
         print('[AVISO] Nenhuma conta cadastrada. Execute python contas.py NOME antes de conectar clientes.')
-    Servidor(host, porta).iniciar()
+    Servidor(host, porta, espiao=args.espiao).iniciar()
 
 if __name__ == '__main__':
     main()

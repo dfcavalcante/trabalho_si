@@ -6,6 +6,7 @@ import tempfile
 from servidor import Servidor
 from cliente import Cliente
 from identidades import provisionar_par
+from contas import cadastrar
 
 
 def aguardar(condicao, segundos=8):
@@ -17,26 +18,29 @@ def aguardar(condicao, segundos=8):
 
 
 def rodar(modo):
-    server=Servidor('127.0.0.1',0)
+    # Servidor iniciado após criar contas temporárias
     # Reservar socket inicialmente para receber a porta escolhida pelo SO.
     # iniciar() fará bind na porta que reservamos e liberamos.
     temp=socket.socket()
     temp.bind(('127.0.0.1',0))
     porta=temp.getsockname()[1]
     temp.close()
-    server.porta=porta
-    thread=threading.Thread(target=server.iniciar,daemon=True)
-    thread.start()
-    assert aguardar(lambda: server.sock is not None)
     with tempfile.TemporaryDirectory() as logs:
         from pathlib import Path
+        db=Path(logs)/'contas.json'
+        cadastrar('Alice','aliceSenhaForte123',db)
+        cadastrar('Bob','bobSenhaForte123',db)
+        server=Servidor('127.0.0.1',porta,caminho_contas=db)
+        thread=threading.Thread(target=server.iniciar,daemon=True)
+        thread.start()
+        assert aguardar(lambda: server.sock is not None)
         ids=Path(logs)/'ids'
         provisionar_par('Alice','Bob',ids)
         alice=Cliente('Alice',modo,logs,ids/'Alice.json')
         bob=Cliente('Bob',modo,logs,ids/'Bob.json')
         try:
-            alice.conectar('127.0.0.1',porta)
-            bob.conectar('127.0.0.1',porta)
+            alice.conectar('127.0.0.1',porta,senha='aliceSenhaForte123')
+            bob.conectar('127.0.0.1',porta,senha='bobSenhaForte123')
             alice.listar()
             assert aguardar(lambda: alice.evento.is_set())
             alice.evento.clear()

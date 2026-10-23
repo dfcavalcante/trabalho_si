@@ -2,8 +2,7 @@
 
 Não substitui assinaturas digitais: cada par de usuários conhece um segredo próprio.
 """
-import hashlib
-import hmac
+from primitivas_manuais import hmac_sha256, compare_digest
 import json
 import os
 import secrets
@@ -55,8 +54,8 @@ def provisionar_par(a,b,pasta='identidades'):
 
 def prova(chave, transcricao, papel):
     from integridade import serializar
-    return hmac.new(chave,b'chat-si-identidade-v1|'+papel.encode()+b'|'+serializar(transcricao),hashlib.sha256).hexdigest()
+    return hmac_sha256(chave,b'chat-si-identidade-v1|'+papel.encode()+b'|'+serializar(transcricao)).hex()
 
 
 def conferir(chave, transcricao, papel, valor):
-    return isinstance(valor,str) and hmac.compare_digest(prova(chave,transcricao,papel),valor)
+    return isinstance(valor,str) and compare_digest(prova(chave,transcricao,papel),valor)

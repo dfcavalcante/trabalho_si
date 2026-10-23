@@ -1,6 +1,5 @@
 """HMAC autenticado e vinculado à sessão, sem bibliotecas criptográficas externas."""
-import hashlib
-import hmac
+from primitivas_manuais import sha256, hmac_sha256, compare_digest
 import json
 
 
@@ -9,11 +8,11 @@ def serializar(dados):
 
 
 def etiqueta(chave, dados):
-    return hmac.new(chave, serializar(dados), hashlib.sha256).hexdigest()
+    return hmac_sha256(chave, serializar(dados)).hex()
 
 
 def verificar(chave, dados, mac):
-    return isinstance(mac, str) and hmac.compare_digest(etiqueta(chave, dados), mac)
+    return isinstance(mac, str) and compare_digest(etiqueta(chave, dados), mac)
 
 
 def transcricao(identificador, modo, iniciador, respondente, pub_inic, pub_resp):
@@ -23,4 +22,4 @@ def transcricao(identificador, modo, iniciador, respondente, pub_inic, pub_resp)
 
 
 def codigo_verificacao(transcricao_dh):
-    return hashlib.sha256(serializar(transcricao_dh)).hexdigest().upper()[:16]
+    return sha256(serializar(transcricao_dh)).hex().upper()[:16]

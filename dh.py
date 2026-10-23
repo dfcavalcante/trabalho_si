@@ -5,7 +5,7 @@ modular, o teste de primalidade e a validação são todos nossos.
 """
 import secrets
 
-from log import abreviar, completo as valor_completo
+from log import completo as valor_completo, abreviar
 
 # Modo didático: números pequenos, dá para conferir na calculadora.
 DIDATICO = {"p": 23, "g": 5}
@@ -29,11 +29,7 @@ SEGURO = {"p": P_RFC3526_G14, "g": 2}
 
 
 def exp_mod(base, expoente, modulo, log=None, etapa="DH-POW", tela=True, completo=False):
-    """Square-and-multiply da esquerda para a direita, registrando cada bit.
-
-    completo=True registra cada operação com os operandos e resultados sem
-    abreviação (usado pela auditoria determinística em auditoria_dh.py).
-    """
+    """Square-and-multiply da esquerda para a direita, registrando cada bit."""
     fmt = valor_completo if completo else abreviar
     bits = format(expoente, "b")
     if log:
@@ -46,17 +42,10 @@ def exp_mod(base, expoente, modulo, log=None, etapa="DH-POW", tela=True, complet
         quadrado = (resultado * resultado) % modulo
         if bit == "1":
             resultado = (quadrado * base) % modulo
-            if completo:
-                acao = (f"bit=1 | {fmt(anterior)}^2 mod p = {fmt(quadrado)}"
-                        f" | {fmt(quadrado)} x {fmt(base)} mod p = {fmt(resultado)}")
-            else:
-                acao = f"bit=1 -> quadrado={abreviar(quadrado)} -> x base={abreviar(resultado)}"
+            acao = (f"bit=1 | {fmt(anterior)}^2 mod p = {fmt(quadrado)} | {fmt(quadrado)} x {fmt(base)} mod p = {fmt(resultado)}") if completo else f"bit=1 -> quadrado={abreviar(quadrado)} -> x base={abreviar(resultado)}"
         else:
             resultado = quadrado
-            if completo:
-                acao = f"bit=0 | {fmt(anterior)}^2 mod p = {fmt(quadrado)}"
-            else:
-                acao = f"bit=0 -> quadrado={abreviar(quadrado)}"
+            acao = f"bit=0 | {fmt(anterior)}^2 mod p = {fmt(quadrado)}" if completo else f"bit=0 -> quadrado={abreviar(quadrado)}"
         if log:
             log.passo(etapa, f"iter={i:>4} {acao}", tela=tela)
     if log:
