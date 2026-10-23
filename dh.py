@@ -5,7 +5,7 @@ modular, o teste de primalidade e a validação são todos nossos.
 """
 import secrets
 
-from log import abreviar
+from log import abreviar, completo as valor_completo
 
 # Modo didático: números pequenos, dá para conferir na calculadora.
 DIDATICO = {"p": 23, "g": 5}
@@ -28,26 +28,39 @@ P_RFC3526_G14 = int(
 SEGURO = {"p": P_RFC3526_G14, "g": 2}
 
 
-def exp_mod(base, expoente, modulo, log=None, etapa="DH-POW", tela=True):
-    """Square-and-multiply da esquerda para a direita, registrando cada bit."""
+def exp_mod(base, expoente, modulo, log=None, etapa="DH-POW", tela=True, completo=False):
+    """Square-and-multiply da esquerda para a direita, registrando cada bit.
+
+    completo=True registra cada operação com os operandos e resultados sem
+    abreviação (usado pela auditoria determinística em auditoria_dh.py).
+    """
+    fmt = valor_completo if completo else abreviar
     bits = format(expoente, "b")
     if log:
-        log.passo(etapa, f"calcular {abreviar(base)}^{abreviar(expoente)} mod {abreviar(modulo)} "
-                         f"| expoente em binário tem {len(bits)} bits: {bits if len(bits) <= 64 else '(ver log)'}",
+        log.passo(etapa, f"calcular {fmt(base)}^{fmt(expoente)} mod {fmt(modulo)} "
+                         f"| expoente em binário tem {len(bits)} bits: {bits if completo or len(bits) <= 64 else '(ver log)'}",
                   tela=tela)
     resultado = 1
     for i, bit in enumerate(bits, start=1):
+        anterior = resultado
         quadrado = (resultado * resultado) % modulo
         if bit == "1":
             resultado = (quadrado * base) % modulo
-            acao = f"bit=1 -> quadrado={abreviar(quadrado)} -> x base={abreviar(resultado)}"
+            if completo:
+                acao = (f"bit=1 | {fmt(anterior)}^2 mod p = {fmt(quadrado)}"
+                        f" | {fmt(quadrado)} x {fmt(base)} mod p = {fmt(resultado)}")
+            else:
+                acao = f"bit=1 -> quadrado={abreviar(quadrado)} -> x base={abreviar(resultado)}"
         else:
             resultado = quadrado
-            acao = f"bit=0 -> quadrado={abreviar(quadrado)}"
+            if completo:
+                acao = f"bit=0 | {fmt(anterior)}^2 mod p = {fmt(quadrado)}"
+            else:
+                acao = f"bit=0 -> quadrado={abreviar(quadrado)}"
         if log:
             log.passo(etapa, f"iter={i:>4} {acao}", tela=tela)
     if log:
-        log.passo(etapa, f"resultado = {abreviar(resultado)}", tela=tela)
+        log.passo(etapa, f"resultado = {fmt(resultado)}", tela=tela)
     return resultado
 
 

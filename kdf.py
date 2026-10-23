@@ -6,6 +6,18 @@ negociação de chaves; RC4 e a aritmética DH permanecem implementados à mão.
 import hashlib
 import hmac
 
+from integridade import serializar
+
+
+def contexto_sessao(transcricao):
+    """Contexto HKDF vinculado à negociação específica.
+
+    A transcrição contém protocolo, identificador da sessão, modo, quem é
+    iniciador e quem é respondente, e as duas chaves públicas DH. Qualquer
+    diferença em um desses campos produz chaves RC4 e HMAC diferentes.
+    """
+    return b"trabalho_si-sessao-v2|" + hashlib.sha256(serializar(transcricao)).hexdigest().encode()
+
 
 def _expandir(prk, info, tamanho):
     resultado = b""
@@ -21,8 +33,9 @@ def _expandir(prk, info, tamanho):
 def derivar(s, p, log, contexto=b"trabalho_si-v1"):
     """Devolve (chave Alice->Bob, chave Bob->Alice), 32 bytes por sentido.
 
-    Em uma fase futura, contexto deve incluir a transcrição autenticada e
-    identificador da sessão, para vincular a derivação à negociação.
+    No cliente-servidor, contexto = contexto_sessao(transcrição) e os rótulos
+    de direção significam iniciador->respondente e respondente->iniciador;
+    os nomes dos participantes e seus papéis entram pela transcrição.
     """
     if not 1 <= s < p:
         raise ValueError("segredo DH fora do intervalo permitido")
