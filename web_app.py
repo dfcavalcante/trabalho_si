@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 import uvicorn
 
 from cliente import Cliente
+import identidades
 
 BASE = Path(__file__).resolve().parent
 
@@ -38,8 +39,10 @@ class GrupoMensagem(GrupoCriar):
     texto: str = Field(min_length=1,max_length=64000)
 
 class PonteWeb:
-    def __init__(self, usuario, modo, host, porta, identidade):
+    def __init__(self, usuario, modo, host, porta, identidade, senha_auto=None):
         self.nome, self.modo, self.identidade = usuario, modo, identidade
+        self.senha_auto = senha_auto  # definida: entra sozinho, sem tela de login
+        self.saiu = False  # logout explícito pausa a reconexão automática
         self.cliente = None
         self.login_lock = threading.RLock()
         self.tokens = {}
@@ -52,6 +55,51 @@ class PonteWeb:
         self.eventos = []
         self.sequencia = 0
         self._mutex_thread = __import__('threading').RLock()
+
+    def conectar(self, senha):
+        """Login no servidor (desafio-resposta); devolve um token novo para o navegador."""
+        with self.login_lock:
+            if self.cliente is not None and self.cliente.ativo:
+                raise RuntimeError('já existe sessão ativa nesta instância')
+            c=Cliente(self.nome,self.modo,caminho_identidade=self.identidade)
+            try:
+                c.conectar(self.host,self.porta,senha)
+                c.listar()
+            except Exception:
+                try: c.fechar()
+                except Exception: pass
+                raise
+            self.cliente=c
+            self.saiu=False
+            self.proximo_recebido=self.proximo_ack=self.proximo_grupo=self.proximo_erro=0
+            self.log_offset=0
+            self.eventos=[]
+            self.sequencia=0
+            # No modo automático o navegador já recebeu token ao abrir a página; não invalidar.
+            if not self.senha_auto: self.tokens.clear()
+            return self.novo_token()
+
+    def novo_token(self):
+        with self.login_lock:
+            token=secrets.token_urlsafe(32)
+            self.tokens[token]=True
+            return token
+
+    def manter_conectado(self, intervalo=2.0):
+        """Entrada automática: conecta assim que o servidor responder e reconecta se cair."""
+        avisado=False
+        while True:
+            c=self.cliente
+            if not self.saiu and (c is None or not c.ativo):
+                try:
+                    self.conectar(self.senha_auto)
+                    print(f'[CONECTADO] {self.nome} entrou automaticamente no servidor {self.host}:{self.porta}',flush=True)
+                    avisado=False
+                except Exception as exc:
+                    if not avisado:
+                        print(f'[AGUARDANDO] servidor indisponível ou login recusado ({exc}); tentando a cada {intervalo:.0f} s',flush=True)
+                        avisado=True
+            time.sleep(intervalo)
 
     def registrar(self, tipo, **dados):
         with self._mutex_thread:
@@ -121,8 +169,19 @@ def criar_app(ponte):
         if origem is not None and origem not in ('http://'+host,'https://'+host):
             raise HTTPException(403,'origem não autorizada')
 
+    def ativo():
+        c=ponte.cliente
+        if c is None or not c.ativo: raise HTTPException(503,'cliente desconectado; conectando ao servidor')
+        return c
+
     @app.get('/')
-    def home(): return FileResponse(BASE/'web'/'static'/'index.html')
+    def home():
+        resposta=FileResponse(BASE/'web'/'static'/'index.html')
+        if ponte.senha_auto:
+            # Entrada automática: a página já abre dentro do chat, sem tela de login.
+            ponte.saiu=False
+            resposta.set_cookie('rc4_session',ponte.novo_token(),httponly=True,samesite='strict',secure=False,path='/')
+        return resposta
 
     @app.post('/api/login')
     def login(dados:Login, response:Response, request:Request):
@@ -131,32 +190,20 @@ def criar_app(ponte):
             raise HTTPException(403,'origem não autorizada')
         if dados.usuario!=ponte.nome:
             raise HTTPException(401,'usuário inválido nesta instância')
-        with ponte.login_lock:
-            if ponte.cliente is not None and ponte.cliente.ativo:
-                raise HTTPException(409,'já existe sessão ativa nesta instância')
-            c=Cliente(ponte.nome,ponte.modo,caminho_identidade=ponte.identidade)
-            try:
-                c.conectar(ponte.host,ponte.porta,dados.senha)
-                c.listar()
-            except Exception as exc:
-                try: c.fechar()
-                except Exception: pass
-                raise HTTPException(401,'login não autorizado ou servidor indisponível') from exc
-            ponte.cliente=c
-            ponte.proximo_recebido=ponte.proximo_ack=ponte.proximo_grupo=ponte.proximo_erro=0
-            ponte.log_offset=0
-            ponte.eventos=[]
-            ponte.sequencia=0
-            ponte.tokens.clear()
-            token=secrets.token_urlsafe(32)
-            ponte.tokens[token]=True
-            response.set_cookie('rc4_session',token,httponly=True,samesite='strict',secure=False,path='/')
-            return {'autenticado':True,'usuario':ponte.nome}
+        try:
+            token=ponte.conectar(dados.senha or ponte.senha_auto or '')
+        except RuntimeError as exc:
+            raise HTTPException(409,str(exc)) from exc
+        except Exception as exc:
+            raise HTTPException(401,'login não autorizado ou servidor indisponível') from exc
+        response.set_cookie('rc4_session',token,httponly=True,samesite='strict',secure=False,path='/')
+        return {'autenticado':True,'usuario':ponte.nome}
 
     @app.post('/api/logout')
     def logout(response:Response,rc4_session:str|None=Cookie(None)):
         autenticar(rc4_session)
         with ponte.login_lock:
+            ponte.saiu=True
             ponte.tokens.clear()
             if ponte.cliente: ponte.cliente.fechar()
             ponte.cliente=None
@@ -176,14 +223,13 @@ def criar_app(ponte):
     @app.post('/api/usuarios')
     def usuarios(rc4_session: str|None=Cookie(None)):
         autenticar(rc4_session)
-        ponte.cliente.listar()
+        ativo().listar()
         return {'solicitado':True}
 
     @app.post('/api/mensagem')
     def mensagem(dados:Mensagem,rc4_session:str|None=Cookie(None)):
         autenticar(rc4_session)
-        c=ponte.cliente
-        if not c.ativo: raise HTTPException(503,'cliente desconectado')
+        c=ativo()
         if dados.para==c.nome: raise HTTPException(400,'não pode conversar consigo mesmo')
         if len(dados.texto.encode('utf-8'))>65536: raise HTTPException(400,'mensagem excede 65536 bytes')
         try: c.mensagem(dados.para,dados.texto)
@@ -194,25 +240,25 @@ def criar_app(ponte):
     @app.post('/api/grupos')
     def grupo_criar(dados:GrupoCriar,rc4_session:str|None=Cookie(None)):
         autenticar(rc4_session)
-        ponte.cliente.criar_grupo(dados.grupo)
+        ativo().criar_grupo(dados.grupo)
         return {'solicitado':True}
 
     @app.post('/api/grupos/adicionar')
     def grupo_adicionar(dados:GrupoAdicionar,rc4_session:str|None=Cookie(None)):
         autenticar(rc4_session)
-        ponte.cliente.adicionar_grupo(dados.grupo,dados.usuario)
+        ativo().adicionar_grupo(dados.grupo,dados.usuario)
         return {'solicitado':True}
 
     @app.post('/api/grupos/sair')
     def grupo_sair(dados:GrupoCriar,rc4_session:str|None=Cookie(None)):
         autenticar(rc4_session)
-        ponte.cliente.sair_grupo(dados.grupo)
+        ativo().sair_grupo(dados.grupo)
         return {'solicitado':True}
 
     @app.post('/api/grupos/mensagem')
     def mensagem_grupo(dados:GrupoMensagem,rc4_session:str|None=Cookie(None)):
         autenticar(rc4_session)
-        destinos=ponte.cliente.mensagem_grupo(dados.grupo,dados.texto)
+        destinos=ativo().mensagem_grupo(dados.grupo,dados.texto)
         ponte.registrar('saida_grupo',grupo=dados.grupo,texto=dados.texto,destinatarios=destinos)
         return {'aceita':True,'destinatarios':destinos}
 
@@ -251,9 +297,15 @@ def main():
     parser.add_argument('--porta-servidor',type=int,default=5000)
     parser.add_argument('--identidade',default=None,help='arquivo de credencial do usuário')
     args=parser.parse_args()
-    ponte=PonteWeb(args.usuario,args.modo,args.servidor,args.porta_servidor,args.identidade)
+    senha=identidades.senha_login(args.usuario,args.identidade)
+    ponte=PonteWeb(args.usuario,args.modo,args.servidor,args.porta_servidor,args.identidade,senha_auto=senha)
     app=criar_app(ponte)
-    print(f'Interface de {args.usuario} (login obrigatório): http://127.0.0.1:{args.porta}',flush=True)
+    if senha:
+        threading.Thread(target=ponte.manter_conectado,daemon=True).start()
+        print(f'Interface de {args.usuario} (entrada automática): http://127.0.0.1:{args.porta}',flush=True)
+    else:
+        print(f'Interface de {args.usuario} (login obrigatório; sem senha salva, rode python preparar_demo.py): '
+              f'http://127.0.0.1:{args.porta}',flush=True)
     uvicorn.run(app,host='127.0.0.1',port=args.porta,log_level='warning')
 
 if __name__=='__main__': main()

@@ -20,15 +20,16 @@ def carregar(caminho=PADRAO):
     path=Path(caminho)
     return json.loads(path.read_text('utf-8')) if path.exists() else {}
 
-def cadastrar(nome,senha,caminho=PADRAO):
+def cadastrar(nome,senha,caminho=PADRAO,iteracoes=None):
     if not re.fullmatch(r'[A-Za-z0-9]{1,24}',nome): raise ValueError('nome inválido')
     if len(senha)<10: raise ValueError('a senha deve ter pelo menos 10 caracteres')
+    iteracoes=iteracoes or ITERACOES
     caminho=Path(caminho)
     base=carregar(caminho)
     if nome in base: raise ValueError('usuário já cadastrado')
     sal=secrets.token_bytes(16)
-    verificador=pbkdf2_sha256(senha.encode(),sal,ITERACOES)
-    base[nome]={'sal':sal.hex(),'iteracoes':ITERACOES,'verificador':verificador.hex()}
+    verificador=pbkdf2_sha256(senha.encode(),sal,iteracoes)
+    base[nome]={'sal':sal.hex(),'iteracoes':iteracoes,'verificador':verificador.hex()}
     caminho.parent.mkdir(parents=True,exist_ok=True)
     tmp=caminho.with_suffix('.tmp')
     with tmp.open('w',encoding='utf-8') as f: json.dump(base,f,indent=2)

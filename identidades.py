@@ -52,6 +52,28 @@ def provisionar_par(a,b,pasta='identidades'):
     return (pasta/(a+'.json'),pasta/(b+'.json'))
 
 
+def senha_login(nome, caminho=None):
+    """Senha de login gerada pelo preparar_demo.py, se houver (entrada automática na web)."""
+    caminho = Path(caminho) if caminho else arquivo_padrao(nome)
+    if not caminho.is_file():
+        return None
+    senha = json.loads(caminho.read_text(encoding='utf-8')).get('senha_login')
+    return senha if isinstance(senha, str) and senha else None
+
+
+def guardar_senha_login(nome, senha, pasta='identidades'):
+    """Grava a senha de login no arquivo do próprio usuário (secreto, fora do Git)."""
+    pasta = Path(pasta)
+    pasta.mkdir(parents=True, exist_ok=True)
+    arq = pasta/(nome+'.json')
+    dados = json.loads(arq.read_text(encoding='utf-8')) if arq.exists() else {'usuario':nome,'pares':{}}
+    if dados.get('usuario') != nome: raise ValueError('identidade inválida')
+    dados['senha_login'] = senha
+    arq.write_text(json.dumps(dados,indent=2),encoding='utf-8')
+    try: os.chmod(arq,0o600)
+    except OSError: pass
+
+
 def prova(chave, transcricao, papel):
     from integridade import serializar
     return hmac_sha256(chave,b'chat-si-identidade-v1|'+papel.encode()+b'|'+serializar(transcricao)).hex()
